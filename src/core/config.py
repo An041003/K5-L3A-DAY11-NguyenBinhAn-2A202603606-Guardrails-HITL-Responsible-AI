@@ -4,8 +4,7 @@ Lab 11 — Configuration, provider selection, API keys.
 Hai tầng model (không trộn):
 
   Blue Team (CP2–CP3, guardrails / pipeline / protected agent)
-    → CỐ ĐỊNH OpenRouter ``liquid/lfm-3-1.7b:free``
-       https://openrouter.ai/liquid/lfm-3-1.7b:free
+    → CỐ ĐỊNH OpenRouter ``liquid/lfm-3-1.7b:free``.
     → Cần ``OPENROUTER_API_KEY``
 
   Red Team (CP4)
@@ -34,7 +33,7 @@ PROVIDER_OPENAI = "openai"
 PROVIDER_GEMINI = "gemini"
 PROVIDER_OPENROUTER = "openrouter"
 
-# --- Blue Team (LOCKED) ---
+# --- Blue Team (LOCKED by the lab contract) ---
 BLUE_PROVIDER = PROVIDER_OPENROUTER
 BLUE_MODEL = "liquid/lfm-3-1.7b:free"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -104,7 +103,7 @@ def get_blue_provider() -> str:
 
 
 def get_blue_model() -> str:
-    # Hard-locked; env cannot override for the graded Blue Team path.
+    # Environment variables cannot change the graded Blue model.
     return BLUE_MODEL
 
 
@@ -240,7 +239,7 @@ def setup_api_key():
         os.environ["OPENROUTER_API_KEY"] = input(
             "Enter OpenRouter API Key (Blue): "
         ).strip()
-    print(f"Blue  — {blue_provider_label()}  [LOCKED]")
+    print(f"Blue  — {blue_provider_label()}")
 
     red = get_red_provider()
     model = get_red_model()

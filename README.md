@@ -1,5 +1,59 @@
 # Day 11 — Controlled Agent Security (2026)
 
+### Bài nộp cá nhân
+
+**Nguyễn Bình An – MSSV 2A202603606 – Lớp L3A, Khóa 5.**
+
+Blue dùng cố định OpenRouter `liquid/lfm-3-1.7b:free` theo đề; biến môi trường
+không thể đổi model Blue. Red và Red Advance dùng OpenAI `gpt-4o-mini`.
+Code đã tích hợp guardrails input/output (CP2), rate limit, audit, monitoring,
+egress và pipeline (CP3), cùng 5 prompt red-team (CP4).
+
+Chạy từ gốc repo trên Windows với Python 3.12 (không cần activate):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# Điền OPENROUTER_API_KEY và OPENAI_API_KEY trong .env.
+.\.venv\Scripts\python.exe src/main.py --part 2
+.\.venv\Scripts\python.exe src/main.py --part 3
+.\.venv\Scripts\python.exe src/main.py --part 4
+.\.venv\Scripts\python.exe -m pytest tests/offline tests/smoke tests/public -q
+.\.venv\Scripts\python.exe scripts/grade.py --submission-dir . --out outputs/grade_report.json
+```
+
+CP3/CP4 gọi API thật. `LLM_MAX_OUTPUT_TOKENS=1024` giới hạn output mỗi request.
+`.env` và `.venv` được Git ignore; chỉ nộp `.env.example` với key trống.
+Bằng chứng nằm trong `outputs/`; `grade_report.json` và `lab_report.md` do
+`scripts/grade.py` tự sinh. Không sửa tay JSON hoặc báo cáo tự sinh.
+
+### Kết quả kiểm chứng
+
+Lần chạy CP3 phục vụ bài nộp ngày 19/11/2026 dùng đúng
+`openrouter:liquid/lfm-3-1.7b:free`, sinh bằng chứng thật trong
+[`outputs/results.json`](outputs/results.json), `audit_log.json` và `metrics.json`:
+
+- Câu banking an toàn: 5/5 được phép; prompt tấn công: 7/7 bị chặn.
+- Case biên: 3/4 bị chặn; 1 câu banking hợp lệ được phép qua input guardrail.
+- Kiểm tra rate limiter cục bộ: 15 request, cho qua 10 và chặn 5 đúng thiết kế;
+  đây không phải lỗi quota API hay 5 request cần chạy bù.
+- Egress: 3/3 kiểm tra đạt (đích hợp lệ, payload chứa secret, domain lạ).
+
+CP4 đã chạy thật bằng `openai:gpt-4o-mini`: Red leak 5/5; Red Advance leak 0/5,
+chặn 4 prompt ở regex input và 1 prompt ở NeMo self-check input.
+Bằng chứng trong [`outputs/attack_results.json`](outputs/attack_results.json)
+được giữ nguyên khi chạy lại CP3; provider/model và 5 prompt vẫn khớp bài nộp.
+
+Offline + smoke + public tests: **90 passed, không skip**.
+Grader gốc tự sinh [`outputs/grade_report.json`](outputs/grade_report.json) và
+[`outputs/lab_report.md`](outputs/lab_report.md): packaging hợp lệ, schema hợp lệ,
+public tests **10 passed**, `technical_failure=false`. Grader này chỉ kiểm tra
+packaging/schema/public tests, không xác nhận tổng điểm 100 hoặc bonus.
+Bonus B1/B2 và chất lượng prompt còn cần human review / grader replay.
+
+Phần tài liệu gốc của giảng viên được giữ bên dưới.
+
 > 👤 **Hình thức:** bài tập **cá nhân** (1 người / 1 MSSV).  
 > 🎯 **Mục tiêu:** đóng vai **Blue Team** để học cách xây Guardrails phòng thủ, rồi đóng vai **Red Team** để tấn công agent **Red** hoặc **Red Advance**.  
 > ✅ Làm theo **Checkpoint 1 → 5** trong [`CHECKPOINTS.md`](CHECKPOINTS.md) · nộp theo [`SUBMISSION.md`](SUBMISSION.md).

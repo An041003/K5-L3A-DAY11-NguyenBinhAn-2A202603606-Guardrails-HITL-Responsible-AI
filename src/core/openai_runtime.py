@@ -9,6 +9,7 @@ Gemini Red Team dùng Google ADK trong agents/*.py — không đi qua file này.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 from typing import Any, Callable
 
 from core.config import (
@@ -69,6 +70,7 @@ class OpenAIRunner:
                 {"role": "user", "content": user_message},
             ],
             temperature=self.temperature,
+            max_tokens=int(os.environ.get("LLM_MAX_OUTPUT_TOKENS", "1024")),
         )
         text = (completion.choices[0].message.content or "").strip()
 
@@ -191,7 +193,7 @@ def create_blue_pair(
     output_hooks: list | None = None,
     temperature: float = 0.4,
 ) -> tuple[OpenAIAgent, OpenAIRunner]:
-    """Blue Team — always OpenRouter liquid/lfm-3-1.7b:free."""
+    """Blue Team — fixed OpenRouter liquid/lfm-3-1.7b:free."""
     return _make_pair(
         name=name,
         instruction=instruction,
